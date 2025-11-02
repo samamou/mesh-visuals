@@ -7,5 +7,4 @@ A collection of interactive p5.js sketches
 3. Update `index.html` with your controls
 4. Add it to the main `index.html` gallery 
 
-## 📄 License
-MIT 
+MIT License
