@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mesh Visuals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        padding: 60px 20px;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 32px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+      .subtitle {
+        color: #888;
+        margin-bottom: 48px;
+        font-size: 14px;
+        font-weight: 400;
+      }
+      .sketches {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .sketch-card {
+        background: #111;
+        padding: 20px 24px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: background 0.2s;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .sketch-card:last-child {
+        border-bottom: none;
+      }
+      .sketch-card:hover {
+        background: #1a1a1a;
+      }
+      .sketch-card h2 {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #fff;
+      }
+      .sketch-card p {
+        color: #888;
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .footer {
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        color: #666;
+        font-size: 12px;
+      }
+      .footer a {
+        color: #888;
+        text-decoration: none;
+      }
+      .footer a:hover {
+        color: #aaa;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>mesh-visuals</h1>
+      <p class="subtitle">interactive p5.js sketches</p>
+      
+      <div class="sketches">
+        <a href="sketches/jittery-nodes/index.html" class="sketch-card">
+          <h2>jittery-nodes</h2>
+          <p>animated network visualization </p>
+        </a>
+        
+        <a href="sketches/example-simple/index.html" class="sketch-card">
+          <h2>example-simple</h2>
+          <p>demo of shared controls system</p>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
