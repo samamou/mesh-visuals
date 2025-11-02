@@ -3,12 +3,17 @@
   <head>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
 
   </head>
   <body>
     <div id="controls">
+        <div class="control-group">
+            <button id="reset-btn" class="export-btn">Reset</button>
+          </div>
+
         <div class="section-header">Canvas</div>
         <div class="control-group">
             <label>Canvas width: <span id="canvas-width-val">1000</span></label>
@@ -40,7 +45,7 @@
           </div>
           <div class="control-group">
             <label>Edge Padding: <span id="edge-padding-val">30</span></label>
-            <input type="range" id="edge-padding" min="0" max="100" value="30" step="5">
+            <input type="range" id="edge-padding" min="0" max="300" value="30" step="5">
           </div>
 
         <div class="section-header">Colors</div>
@@ -59,6 +64,35 @@
           <div class="control-group">
             <label>Card Color:</label>
             <input type="color" id="card-color" value="#232323">
+          </div>
+
+        <div class="section-header">Export</div>
+        <div class="control-group">
+            <button id="screenshot-btn" class="export-btn">Screenshot PNG</button>
+          </div>
+          <div class="control-group">
+            <label>Record Duration: <span id="record-duration-val">10</span>s</label>
+            <input type="range" id="record-duration" min="1" max="60" value="10" step="1">
+          </div>
+          <div class="control-group">
+            <button id="record-btn" class="export-btn">Start Recording</button>
+            <div id="recording-status" class="recording-status"></div>
+          </div>
+          <div class="control-group">
+            <button id="download-btn" class="export-btn" disabled>Download Video</button>
+          </div>
+
+        <div class="section-header">Presets</div>
+        <div class="control-group">
+            <label>Preset Name:</label>
+            <input type="text" id="preset-name" placeholder="cute_bubbles">
+          </div>
+          <div class="control-group">
+            <button id="save-preset-btn" class="export-btn">Save Preset</button>
+          </div>
+          <div class="control-group">
+            <input type="file" id="load-preset-input" accept=".json" style="display: none;">
+            <button id="load-preset-btn" class="export-btn">Load Preset</button>
           </div>
     </div>
     <main>

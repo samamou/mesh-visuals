@@ -65,3 +65,52 @@ canvas {
     cursor: pointer;
     background: transparent;
 }
+.control-group input[type="text"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 12px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.control-group input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+.export-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.export-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+}
+.export-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.export-btn.recording {
+    background: rgba(255, 50, 50, 0.3);
+    border-color: rgba(255, 50, 50, 0.5);
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+.recording-status {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+    min-height: 14px;
+}
