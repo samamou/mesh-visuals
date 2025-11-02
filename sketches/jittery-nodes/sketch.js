@@ -166,8 +166,17 @@ function setupPresetControls() {
   const loadPresetBtn = document.getElementById('load-preset-btn');
   const loadPresetInput = document.getElementById('load-preset-input');
 
-  resetBtn.addEventListener('click', () => {
+  const handleReset = () => {
     initNodes();
+  };
+
+  resetBtn.addEventListener('click', handleReset);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !isInputFocused()) {
+      e.preventDefault();
+      handleReset();
+    }
   });
 
   savePresetBtn.addEventListener('click', () => {
@@ -199,6 +208,15 @@ function setupPresetControls() {
     }
     e.target.value = '';
   });
+}
+
+function isInputFocused() {
+  const activeElement = document.activeElement;
+  return activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable
+  );
 }
 
 function savePreset() {
