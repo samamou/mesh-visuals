@@ -67,11 +67,31 @@
             <button id="screenshot-btn" class="export-btn">Screenshot PNG</button>
           </div>
           <div class="control-group">
+            <label>Record Duration: <span id="record-duration-val">10</span>s</label>
+            <input type="range" id="record-duration" min="1" max="60" value="10" step="1">
+          </div>
+          <div class="control-group">
             <button id="record-btn" class="export-btn">Start Recording</button>
             <div id="recording-status" class="recording-status"></div>
           </div>
           <div class="control-group">
             <button id="download-btn" class="export-btn" disabled>Download Video</button>
+          </div>
+
+        <div class="section-header">Presets</div>
+        <div class="control-group">
+            <button id="reset-btn" class="export-btn">Reset Animation</button>
+          </div>
+          <div class="control-group">
+            <label>Preset Name:</label>
+            <input type="text" id="preset-name" placeholder="cute_bubbles">
+          </div>
+          <div class="control-group">
+            <button id="save-preset-btn" class="export-btn">Save Preset</button>
+          </div>
+          <div class="control-group">
+            <input type="file" id="load-preset-input" accept=".json" style="display: none;">
+            <button id="load-preset-btn" class="export-btn">Load Preset</button>
           </div>
     </div>
     <main>

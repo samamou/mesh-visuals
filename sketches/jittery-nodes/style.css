@@ -65,6 +65,22 @@ canvas {
     cursor: pointer;
     background: transparent;
 }
+.control-group input[type="text"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 12px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.control-group input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
 .export-btn {
     width: 100%;
     padding: 8px 12px;

@@ -18,6 +18,9 @@ let recordedChunks = [];
 let stream = null;
 let ffmpeg = null;
 let ffmpegLoaded = false;
+let recordingDuration = 10;
+let recordingTimer = null;
+let recordingStartTime = null;
 
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -96,7 +99,10 @@ function setup() {
   bindColorControl('bg-color', (v) => { BG_COLOR = v; });
   bindColorControl('card-color', (v) => { CARD_COLOR = v; });
 
+  bindControl('record-duration', (v) => { recordingDuration = v; }, 'record-duration-val');
+
   setupExportControls();
+  setupPresetControls();
 }
 
 function setupExportControls() {
@@ -115,19 +121,207 @@ function setupExportControls() {
       recordBtn.textContent = 'Stop Recording';
       recordBtn.classList.add('recording');
       downloadBtn.disabled = true;
-      statusDiv.textContent = 'Recording...';
+      
+      recordingStartTime = Date.now();
+      recordingTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const remaining = recordingDuration - elapsed;
+        
+        if (remaining <= 0) {
+          clearInterval(recordingTimer);
+          recordingTimer = null;
+          stopRecording();
+          recordBtn.textContent = 'Start Recording';
+          recordBtn.classList.remove('recording');
+          downloadBtn.disabled = false;
+          statusDiv.textContent = 'Ready to download';
+        } else {
+          statusDiv.textContent = `Recording... ${remaining}s remaining`;
+        }
+      }, 100);
+      
+      statusDiv.textContent = `Recording... ${recordingDuration}s`;
     } else {
       stopRecording();
       recordBtn.textContent = 'Start Recording';
       recordBtn.classList.remove('recording');
       downloadBtn.disabled = false;
       statusDiv.textContent = 'Ready to download';
+      
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+        recordingTimer = null;
+      }
     }
   });
 
   downloadBtn.addEventListener('click', () => {
     downloadRecording();
   });
+}
+
+function setupPresetControls() {
+  const resetBtn = document.getElementById('reset-btn');
+  const savePresetBtn = document.getElementById('save-preset-btn');
+  const loadPresetBtn = document.getElementById('load-preset-btn');
+  const loadPresetInput = document.getElementById('load-preset-input');
+
+  resetBtn.addEventListener('click', () => {
+    initNodes();
+  });
+
+  savePresetBtn.addEventListener('click', () => {
+    savePreset();
+  });
+
+  loadPresetBtn.addEventListener('click', () => {
+    loadPresetInput.click();
+  });
+
+  loadPresetInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const preset = JSON.parse(event.target.result);
+          loadPreset(preset);
+          
+          const presetNameInput = document.getElementById('preset-name');
+          if (preset.name) {
+            presetNameInput.value = preset.name;
+          }
+        } catch (err) {
+          alert('Invalid preset file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+    e.target.value = '';
+  });
+}
+
+function savePreset() {
+  const presetNameInput = document.getElementById('preset-name');
+  const presetName = presetNameInput.value.trim() || 'cute_bubbles';
+  
+  const sanitizedName = presetName
+    .replace(/[^a-z0-9]/gi, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase()
+    .substring(0, 50);
+
+  const preset = {
+    version: '1.0',
+    name: presetName,
+    timestamp: new Date().toISOString(),
+    settings: {
+      CANVAS_W,
+      CANVAS_H,
+      NUM_NODES,
+      MAX_LINK_DIST,
+      NODE_SIZE,
+      STEP_SIZE,
+      EDGE_BOUNCE_PADDING,
+      NODE_COLOR,
+      LINK_COLOR,
+      BG_COLOR,
+      CARD_COLOR
+    }
+  };
+
+  const json = JSON.stringify(preset, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const filename = sanitizedName || 'jittery-nodes-preset';
+  a.download = `${filename}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadPreset(preset) {
+  if (!preset.settings) {
+    alert('Invalid preset format');
+    return;
+  }
+
+  const settings = preset.settings;
+
+  if (settings.CANVAS_W) {
+    CANVAS_W = settings.CANVAS_W;
+    document.getElementById('canvas-width').value = CANVAS_W;
+    document.getElementById('canvas-width-val').textContent = CANVAS_W;
+  }
+
+  if (settings.CANVAS_H) {
+    CANVAS_H = settings.CANVAS_H;
+    document.getElementById('canvas-height').value = CANVAS_H;
+    document.getElementById('canvas-height-val').textContent = CANVAS_H;
+  }
+
+  resizeCanvas(CANVAS_W, CANVAS_H);
+
+  if (settings.NUM_NODES) {
+    NUM_NODES = settings.NUM_NODES;
+    document.getElementById('num-nodes').value = NUM_NODES;
+    document.getElementById('num-nodes-val').textContent = NUM_NODES;
+  }
+
+  if (settings.MAX_LINK_DIST) {
+    MAX_LINK_DIST = settings.MAX_LINK_DIST;
+    document.getElementById('link-dist').value = MAX_LINK_DIST;
+    document.getElementById('link-dist-val').textContent = MAX_LINK_DIST;
+  }
+
+  if (settings.NODE_SIZE !== undefined) {
+    NODE_SIZE = settings.NODE_SIZE;
+    document.getElementById('node-size').value = NODE_SIZE;
+    document.getElementById('node-size-val').textContent = NODE_SIZE;
+  }
+
+  if (settings.STEP_SIZE !== undefined) {
+    STEP_SIZE = settings.STEP_SIZE;
+    document.getElementById('step-size').value = STEP_SIZE;
+    document.getElementById('step-size-val').textContent = STEP_SIZE.toFixed(1);
+  }
+
+  if (settings.EDGE_BOUNCE_PADDING !== undefined) {
+    EDGE_BOUNCE_PADDING = settings.EDGE_BOUNCE_PADDING;
+    document.getElementById('edge-padding').value = EDGE_BOUNCE_PADDING;
+    document.getElementById('edge-padding-val').textContent = EDGE_BOUNCE_PADDING;
+  }
+
+  if (settings.NODE_COLOR) {
+    NODE_COLOR = settings.NODE_COLOR;
+    document.getElementById('node-color').value = rgbToHex(NODE_COLOR);
+  }
+
+  if (settings.LINK_COLOR) {
+    LINK_COLOR = settings.LINK_COLOR;
+    document.getElementById('link-color').value = rgbToHex(LINK_COLOR);
+  }
+
+  if (settings.BG_COLOR) {
+    BG_COLOR = settings.BG_COLOR;
+    document.getElementById('bg-color').value = rgbToHex(BG_COLOR);
+  }
+
+  if (settings.CARD_COLOR) {
+    CARD_COLOR = settings.CARD_COLOR;
+    document.getElementById('card-color').value = rgbToHex(CARD_COLOR);
+  }
+
+  initNodes();
+}
+
+function rgbToHex(rgb) {
+  return '#' + rgb.map(x => {
+    const hex = x.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
 }
 
 function getSupportedMimeType() {
