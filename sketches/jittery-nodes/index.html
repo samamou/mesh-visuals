@@ -3,6 +3,7 @@
   <head>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
 
@@ -40,7 +41,7 @@
           </div>
           <div class="control-group">
             <label>Edge Padding: <span id="edge-padding-val">30</span></label>
-            <input type="range" id="edge-padding" min="0" max="100" value="30" step="5">
+            <input type="range" id="edge-padding" min="0" max="300" value="30" step="5">
           </div>
 
         <div class="section-header">Colors</div>
@@ -59,6 +60,18 @@
           <div class="control-group">
             <label>Card Color:</label>
             <input type="color" id="card-color" value="#232323">
+          </div>
+
+        <div class="section-header">Export</div>
+        <div class="control-group">
+            <button id="screenshot-btn" class="export-btn">Screenshot PNG</button>
+          </div>
+          <div class="control-group">
+            <button id="record-btn" class="export-btn">Start Recording</button>
+            <div id="recording-status" class="recording-status"></div>
+          </div>
+          <div class="control-group">
+            <button id="download-btn" class="export-btn" disabled>Download Video</button>
           </div>
     </div>
     <main>

@@ -12,6 +12,12 @@ let BG_COLOR = [0, 0, 0];
 let CARD_COLOR = [35, 35, 35];
 
 let nodes = [];
+let isRecording = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+let stream = null;
+let ffmpeg = null;
+let ffmpegLoaded = false;
 
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -89,6 +95,175 @@ function setup() {
   bindColorControl('link-color', (v) => { LINK_COLOR = v; });
   bindColorControl('bg-color', (v) => { BG_COLOR = v; });
   bindColorControl('card-color', (v) => { CARD_COLOR = v; });
+
+  setupExportControls();
+}
+
+function setupExportControls() {
+  const screenshotBtn = document.getElementById('screenshot-btn');
+  const recordBtn = document.getElementById('record-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const statusDiv = document.getElementById('recording-status');
+
+  screenshotBtn.addEventListener('click', () => {
+    saveCanvas('jittery-nodes', 'png');
+  });
+
+  recordBtn.addEventListener('click', async () => {
+    if (!isRecording) {
+      await startRecording();
+      recordBtn.textContent = 'Stop Recording';
+      recordBtn.classList.add('recording');
+      downloadBtn.disabled = true;
+      statusDiv.textContent = 'Recording...';
+    } else {
+      stopRecording();
+      recordBtn.textContent = 'Start Recording';
+      recordBtn.classList.remove('recording');
+      downloadBtn.disabled = false;
+      statusDiv.textContent = 'Ready to download';
+    }
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    downloadRecording();
+  });
+}
+
+function getSupportedMimeType() {
+  const types = [
+    'video/mp4',
+
+  ];
+  
+  for (let type of types) {
+    if (MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+  return 'video/webm';
+}
+
+async function startRecording() {
+  try {
+    const canvasElement = document.querySelector('canvas');
+    if (!canvasElement) {
+      throw new Error('Canvas not found');
+    }
+    
+    if (!canvasElement.captureStream) {
+      throw new Error('captureStream not supported in this browser');
+    }
+
+    const fps = 60;
+    stream = canvasElement.captureStream(fps);
+    recordedChunks = [];
+    
+    const mimeType = getSupportedMimeType();
+    const options = {
+      mimeType: mimeType,
+      videoBitsPerSecond: 25000000
+    };
+
+    if (mimeType.includes('vp9') || mimeType.includes('vp8')) {
+      options.videoBitsPerSecond = 25000000;
+    }
+
+    mediaRecorder = new MediaRecorder(stream, options);
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(recordedChunks, { type: mimeType });
+      const downloadBtn = document.getElementById('download-btn');
+      
+      if (mimeType.includes('mp4')) {
+        const url = URL.createObjectURL(blob);
+        downloadBtn.dataset.videoUrl = url;
+        downloadBtn.dataset.extension = 'mp4';
+      } else {
+        downloadBtn.dataset.videoUrl = URL.createObjectURL(blob);
+        downloadBtn.dataset.videoBlob = 'webm';
+        downloadBtn.dataset.extension = 'webm';
+        
+        const statusDiv = document.getElementById('recording-status');
+        statusDiv.textContent = 'Converting to MP4...';
+        
+        try {
+          const mp4Blob = await convertToMP4(blob);
+          downloadBtn.dataset.videoUrl = URL.createObjectURL(mp4Blob);
+          downloadBtn.dataset.extension = 'mp4';
+          statusDiv.textContent = 'Ready to download (MP4)';
+        } catch (err) {
+          console.error('Conversion failed:', err);
+          statusDiv.textContent = 'Ready to download (WebM) - conversion failed';
+        }
+      }
+    };
+
+    mediaRecorder.start(100);
+    isRecording = true;
+  } catch (err) {
+    console.error('Error starting recording:', err);
+    alert('Recording not supported in this browser: ' + err.message);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    isRecording = false;
+  }
+}
+
+async function convertToMP4(webmBlob) {
+  if (typeof FFmpeg === 'undefined') {
+    throw new Error('FFmpeg not loaded');
+  }
+
+  if (!ffmpegLoaded) {
+    ffmpeg = new FFmpeg();
+    ffmpeg.on('log', ({ message }) => console.log(message));
+    
+    const coreResponse = await fetch('https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js');
+    const wasmResponse = await fetch('https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm');
+    
+    await ffmpeg.load({
+      coreURL: URL.createObjectURL(await coreResponse.blob()),
+      wasmURL: URL.createObjectURL(await wasmResponse.blob()),
+    });
+    ffmpegLoaded = true;
+  }
+
+  const inputName = 'input.webm';
+  const outputName = 'output.mp4';
+  
+  const arrayBuffer = await webmBlob.arrayBuffer();
+  await ffmpeg.writeFile(inputName, new Uint8Array(arrayBuffer));
+  await ffmpeg.exec(['-i', inputName, '-c:v', 'libx264', '-preset', 'fast', '-crf', '22', outputName]);
+  const data = await ffmpeg.readFile(outputName);
+  
+  return new Blob([data.buffer], { type: 'video/mp4' });
+}
+
+function downloadRecording() {
+  const downloadBtn = document.getElementById('download-btn');
+  const url = downloadBtn.dataset.videoUrl;
+  const extension = downloadBtn.dataset.extension || 'mp4';
+  
+  if (url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jittery-nodes-${Date.now()}.${extension}`;
+    a.click();
+  }
 }
 
 function setColor(rgb) {
