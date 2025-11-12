@@ -226,3 +226,156 @@ class PresetManager {
     });
   }
 }
+
+function isInputFocused() {
+  const activeElement = document.activeElement;
+  return activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.tagName === 'SELECT' ||
+    activeElement.isContentEditable
+  );
+}
+
+function setupCommonControls(panel, options = {}) {
+  const {
+    sketchName = 'sketch',
+    onReset = () => {},
+    onCanvasResize = null,
+    getSettings = () => ({}),
+    setSettings = () => {},
+    onConvertToMP4 = null
+  } = options;
+
+  // Setup Reset button with spacebar support
+  const resetBtn = document.getElementById('reset-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', onReset);
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !isInputFocused()) {
+        e.preventDefault();
+        onReset();
+      }
+    });
+  }
+
+  // Setup Canvas controls
+  const canvasWidthInput = document.getElementById('canvas-width');
+  const canvasHeightInput = document.getElementById('canvas-height');
+  if (canvasWidthInput && canvasHeightInput) {
+    panel.bindRange('canvas-width', (v) => {
+      if (onCanvasResize) {
+        onCanvasResize(v, parseInt(canvasHeightInput.value));
+      }
+    }, 'canvas-width-val');
+    
+    panel.bindRange('canvas-height', (v) => {
+      if (onCanvasResize) {
+        onCanvasResize(parseInt(canvasWidthInput.value), v);
+      }
+    }, 'canvas-height-val');
+  }
+
+  // Setup Recording
+  const recorder = new RecordingControls(panel, {
+    duration: 10,
+    onStart: () => {
+      const btn = document.getElementById('record-btn');
+      if (btn) {
+        btn.textContent = 'Stop Recording';
+        btn.classList.add('recording');
+      }
+      const status = document.getElementById('recording-status');
+      if (status) status.textContent = 'Recording...';
+    },
+    onUpdate: (remaining) => {
+      const status = document.getElementById('recording-status');
+      if (status) status.textContent = `Recording... ${remaining}s`;
+    },
+    onStop: () => {
+      const btn = document.getElementById('record-btn');
+      if (btn) {
+        btn.textContent = 'Start Recording';
+        btn.classList.remove('recording');
+      }
+      const downloadBtn = document.getElementById('download-btn');
+      if (downloadBtn) downloadBtn.disabled = false;
+    },
+    onReady: (format) => {
+      const status = document.getElementById('recording-status');
+      if (status) status.textContent = `Ready (${format.toUpperCase()})`;
+    },
+    onConvert: onConvertToMP4 || undefined
+  });
+
+  // Setup Export controls
+  const screenshotBtn = document.getElementById('screenshot-btn');
+  if (screenshotBtn) {
+    panel.bindButton('screenshot-btn', () => {
+      saveCanvas(sketchName, 'png');
+    });
+  }
+
+  const recordBtn = document.getElementById('record-btn');
+  if (recordBtn) {
+    panel.bindButton('record-btn', async () => {
+      if (!recorder.isRecording) {
+        await recorder.start();
+      } else {
+        recorder.stop();
+      }
+    });
+  }
+
+  const downloadBtn = document.getElementById('download-btn');
+  if (downloadBtn) {
+    panel.bindButton('download-btn', () => {
+      recorder.download(sketchName);
+    });
+  }
+
+  const recordDurationInput = document.getElementById('record-duration');
+  if (recordDurationInput) {
+    panel.bindRange('record-duration', (v) => {
+      recorder.recordingDuration = v;
+    }, 'record-duration-val');
+  }
+
+  // Setup Presets
+  const presetManager = new PresetManager(panel, getSettings, setSettings);
+
+  const savePresetBtn = document.getElementById('save-preset-btn');
+  if (savePresetBtn) {
+    panel.bindButton('save-preset-btn', () => {
+      const nameInput = document.getElementById('preset-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      presetManager.save(name || `${sketchName}-preset`);
+    });
+  }
+
+  const loadInput = document.getElementById('load-preset-input');
+  const loadBtn = document.getElementById('load-preset-btn');
+  if (loadInput && loadBtn) {
+    loadBtn.addEventListener('click', () => {
+      loadInput.click();
+    });
+
+    loadInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const name = await presetManager.load(file);
+          const nameInput = document.getElementById('preset-name');
+          if (nameInput && name) {
+            nameInput.value = name;
+          }
+        } catch (err) {
+          alert('Error loading preset: ' + err.message);
+        }
+      }
+      e.target.value = '';
+    });
+  }
+
+  return { recorder, presetManager };
+}

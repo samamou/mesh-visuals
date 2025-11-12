@@ -110,3 +110,48 @@ canvas {
     margin-top: 4px;
     min-height: 14px;
 }
+.control-group select {
+    width: 100%;
+    padding: 6px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+}
+.control-group select:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+}
+.control-group select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+}
+.control-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #fff;
+}
+.control-group textarea {
+    width: 100%;
+    padding: 6px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 60px;
+}
+.control-group textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
